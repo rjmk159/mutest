@@ -1,0 +1,29 @@
+{
+  "name": "mutest",
+  "version": "0.1.1",
+  "description": "Opinionated wrapper around StrykerJS for Vitest + React + TypeScript projects with custom efficacy reporting",
+  "type": "module",
+  "bin": {
+    "mutest": "./bin/mutest.js"
+  },
+  "files": [
+    "bin",
+    "src",
+    "templates",
+    "README.md"
+  ],
+  "peerDependencies": {
+    "@stryker-mutator/core": "^8.0.0",
+    "@stryker-mutator/vitest-runner": "^8.0.0"
+  },
+  "peerDependenciesMeta": {
+    "@stryker-mutator/typescript-checker": { "optional": true }
+  },
+  "dependencies": {
+    "kleur": "^4.1.5",
+    "chalk": "^5.3.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
