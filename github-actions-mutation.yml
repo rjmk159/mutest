@@ -1,0 +1,85 @@
+# Mutation Testing CI workflow for a pnpm monorepo with React + Vite (app + library).
+#
+# Strategy: start permissive, tighten over time. Each package has its own threshold;
+# you ratchet them up in the table below as your tests improve.
+#
+# Save as .github/workflows/mutation.yml in your repo root.
+
+name: Mutation Testing
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  schedule:
+    # Once a week, run with --no-incremental to catch drift in the cache.
+    - cron: '0 6 * * 1'
+
+jobs:
+  mutation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v3
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+
+      - run: pnpm install --frozen-lockfile
+
+      # Cache the incremental file PER PACKAGE. Stryker hashes file contents,
+      # so as long as a package's source/tests haven't changed, prior results
+      # are reused. This is the biggest perf win you'll get.
+      - uses: actions/cache@v4
+        with:
+          path: |
+            packages/*/reports/mutation/stryker-incremental.json
+            apps/*/reports/mutation/stryker-incremental.json
+          key: stryker-incremental-${{ github.ref }}-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            stryker-incremental-${{ github.ref }}-
+            stryker-incremental-refs/heads/main-
+
+      # Schedule runs do a full re-check by passing --no-incremental.
+      - name: Run mutest
+        run: |
+          if [[ "${{ github.event_name }}" == "schedule" ]]; then
+            pnpm exec mutest --threshold-apps 70 --threshold-libs 85 --no-incremental
+          else
+            pnpm exec mutest --threshold-apps 70 --threshold-libs 85
+          fi
+
+      # Upload reports as artifacts even on failure — survivors are exactly
+      # what you want to look at when CI fails.
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: mutation-reports
+          path: |
+            packages/*/reports/mutation/mutation.html
+            packages/*/reports/mutation/mutation.json
+            packages/*/reports/mutation/efficacy.json
+            apps/*/reports/mutation/mutation.html
+            apps/*/reports/mutation/mutation.json
+            apps/*/reports/mutation/efficacy.json
+            reports/mutation/monorepo-efficacy.json
+          retention-days: 30
+
+# -----------------------------------------------------------------------------
+# Ratchet schedule (suggested — edit as you improve)
+# -----------------------------------------------------------------------------
+# Week  Apps threshold  Libraries threshold  Notes
+# ----  --------------  -------------------  -------------------------------------
+# 1-2   60              70                   Establish baseline, fix low-hanging
+# 3-4   70              80                   Tackle NoCoverage mutants
+# 5-8   75              85                   Push branch coverage in libraries
+# 9-12  80              90                   Target conditional/equality survivors
+# 13+   80              95+                  Approach 99% in libraries
+# -----------------------------------------------------------------------------

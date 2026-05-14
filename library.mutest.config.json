@@ -1,0 +1,24 @@
+{
+  "$comment": "Place at packages/<your-lib>/mutest.config.json. Library packages get the higher bar.",
+
+  "threshold": {
+    "high": 85,
+    "low": 70,
+    "break": 70
+  },
+
+  "mutate": [
+    "src/**/*.{ts,tsx}",
+    "!src/**/*.{test,spec}.{ts,tsx}",
+    "!src/**/*.stories.{ts,tsx}",
+    "!src/**/index.ts",
+    "!src/**/*.d.ts",
+    "!src/test-utils/**",
+    "!src/types/**"
+  ],
+
+  "$comment_excluded": "Start with no exclusions; add specific mutators only after seeing real equivalent-mutant patterns. Common ones to consider for a UI lib: 'StringLiteral' on aria-labels/test-ids, 'ObjectLiteral' on default-props.",
+  "excludedMutations": [],
+
+  "incremental": true
+}

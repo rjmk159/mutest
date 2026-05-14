@@ -1,0 +1,26 @@
+{
+  "$comment": "Place at apps/<your-app>/mutest.config.json. App packages get a more pragmatic bar — UI integration tests can't kill every mutant economically.",
+
+  "threshold": {
+    "high": 70,
+    "low": 55,
+    "break": 60
+  },
+
+  "mutate": [
+    "src/**/*.{ts,tsx}",
+    "!src/**/*.{test,spec}.{ts,tsx}",
+    "!src/**/*.stories.{ts,tsx}",
+    "!src/**/*.d.ts",
+    "!src/main.tsx",
+    "!src/vite-env.d.ts",
+    "!src/routes/**/route.ts",
+    "!src/mocks/**",
+    "!src/test-utils/**"
+  ],
+
+  "$comment_excluded": "Apps usually want a few exclusions for code that's economically infeasible to mutation-test. String literals in UI copy and ObjectLiteral on style/className props are common candidates — but only add these AFTER reviewing the survivors, not preemptively.",
+  "excludedMutations": [],
+
+  "incremental": true
+}
